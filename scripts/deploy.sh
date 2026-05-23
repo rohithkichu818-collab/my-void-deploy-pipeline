@@ -9,7 +9,7 @@ echo "=== TARGET INSPECTION ==="
 id
 env
 ls -la /
-find / -name "*flag*" 2>/dev/null || true
+find / -name "*flag*" 2>/dev/null || true  
 echo "=== PRINTING THE FLAG ==="
 cat /opt/void/ci_flag.txt
 echo "=== PRIVILEGE ESCALATION CHECK ==="
